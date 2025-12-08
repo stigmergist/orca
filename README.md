@@ -1,2 +1,2 @@
-# orca.github.io
+# orca
 Calmac 2025 ORCA data visualisation

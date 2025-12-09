@@ -5,7 +5,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	
-	<title>Quick Start - Leaflet</title>
+	<title>ORCA - Marine Sightings Map</title>
 	
 	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
 
@@ -13,15 +13,39 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="sightings.js" type="text/javascript"></script>
 	<style>
+		* {
+			box-sizing: border-box;
+		}
 		html, body {
 			height: 100%;
 			margin: 0;
+			padding: 0;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+		}
+		#map {
+			flex: 1;
+			min-height: 600px;
+			width: 100%;
 		}
 		.leaflet-container {
-			height: 400px;
-			width: 600px;
-			max-width: 100%;
-			max-height: 100%;
+			font-family: inherit;
+		}
+		.info-banner {
+			padding: 1rem;
+			background-color: #f5f5f5;
+			border-bottom: 1px solid #ddd;
+		}
+		.info-banner h1 {
+			margin: 0;
+			font-size: 1.5rem;
+		}
+		.info-banner p {
+			margin: 0.5rem 0 0 0;
+			color: #666;
 		}
 	</style>
 
@@ -29,58 +53,75 @@
 </head>
 <body>
 
+<header class="info-banner">
+	<h1>ORCA Marine Sightings</h1>
+	<p>Track marine mammal and shark sightings around Scotland</p>
+</header>
 
+<div id="map" aria-label="Interactive map of marine sightings"></div>
 
-<div id="map" style="width: 600px; height: 800px;"></div>
 <script>
-
-	const map = L.map('map', {zoomSnap: 0.5}).setView([56.874, -5.757], 7.5);
-
-	const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	// Configuration
+	const MAP_CONFIG = {
+		center: [56.874, -5.757],
+		zoom: 7.5,
 		maxZoom: 19,
-		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
-
-	const routesLayer = L.tileLayer.wms('https://maps.gov.scot/server/services/ScotGov/TransportNetworks/MapServer/WMSServer',{
-		layers: ['ScottishFerryRoutes','ScottishFerryPorts'],
-		format: 'image/png',
-		transparent: true,
-		attribution: 'Scottish Government',
-	}).addTo(map);
-
-	var baseMaps = {
 	};
 
-	var overlayMaps = {
-		"Ferry Routes": routesLayer,
-	};
-
-	var geojsonMarkerOptions = {
+	const MARKER_CONFIG = {
 		radius: 5,
-		fillColor: "#ff7800",
-		color: "#000",
+		fillColor: '#ff7800',
+		color: '#000',
 		weight: 1,
 		opacity: 1,
 		fillOpacity: 0.8,
 		minZoom: 5,
 	};
 
-	for (const [key, geojson] of Object.entries(sightings_map)) {
-		layer = L.geoJSON(geojson, {
-			pointToLayer: function (feature, latlng) {
-				return L.circleMarker(latlng, geojsonMarkerOptions);
-			}
-		}).addTo(map);
-		overlayMaps[key] = layer;
+	const OSM_ATTRIBUTION = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+	const SG_ATTRIBUTION = '&copy; <a href="https://www.data.gov.uk/dataset/68bfec84-4094-4ad8-a1f2-87ac5ce55673/scottish-ferry-routes">Scottish Government</a>';
+	const ORCA_ATTRIBUTION = '&copy; <a href="https://orca.org.uk/">ORCA UK</a>';
+	const WMS_URL = 'https://maps.gov.scot/server/services/ScotGov/TransportNetworks/MapServer/WMSServer';
+
+	// Initialize map
+	const map = L.map('map', { zoomSnap: 0.5 }).setView(MAP_CONFIG.center, MAP_CONFIG.zoom);
+
+	// Add base layers
+	const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: MAP_CONFIG.maxZoom,
+		attribution: OSM_ATTRIBUTION,
+	}).addTo(map);
+
+	// Add Scottish ferry routes layer
+	const routesLayer = L.tileLayer.wms(WMS_URL, {
+		layers: ['ScottishFerryRoutes', 'ScottishFerryPorts'],
+		format: 'image/png',
+		transparent: true,
+		attribution: SG_ATTRIBUTION,
+	}).addTo(map);
+
+	// Build overlay layers from sightings data
+	const baseMaps = {};
+	const overlayMaps = {
+		'Ferry Routes': routesLayer,
+	};
+
+	if (typeof sightings_map === 'undefined') {
+		console.error('Sightings data not loaded. Check sightings.js file.');
+	} else {
+		for (const [speciesName, geojsonData] of Object.entries(sightings_map)) {
+			const layer = L.geoJSON(geojsonData, {
+				pointToLayer: function (feature, latlng) {
+					return L.circleMarker(latlng, MARKER_CONFIG);
+				},
+				attribution: ORCA_ATTRIBUTION,
+			}).addTo(map);
+			overlayMaps[speciesName] = layer;
+		}
 	}
 
-	var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-
-
-
-	
-
-
+	// Add layer control
+	L.control.layers(baseMaps, overlayMaps).addTo(map);
 </script>
 
 

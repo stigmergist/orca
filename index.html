@@ -54,8 +54,8 @@
 <body>
 
 <header class="info-banner">
-	<h1>ORCA Marine Sightings</h1>
-	<p>Track marine mammal and shark sightings around Scotland</p>
+	<h1>ORCA Marine Wildlife Sightings</h1>
+	<p>From aboard CalMac vessels between March and October 2025</p>
 </header>
 
 <div id="map" aria-label="Interactive map of marine sightings"></div>
@@ -68,15 +68,26 @@
 		maxZoom: 19,
 	};
 
-	const MARKER_CONFIG = {
-		radius: 5,
-		fillColor: '#ff7800',
-		color: '#000',
-		weight: 1,
-		opacity: 1,
-		fillOpacity: 0.8,
-		minZoom: 5,
-	};
+	const MARKER_COLOURS =  {
+			"Porpoise": 'red',
+			"Seal": 'green',
+			"Whale": 'blue',
+			"Dolphin": 'yellow',
+			"Other": 'orange',
+			"Shark": 'white',
+		};
+
+	const ANIMAL_IMAGES = {
+		"Common (harbour) seal" : "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/05_Pregnant_female_common_seal_in_SSSI_MacLeod_Estate_%28Cuillin%29_by_Romaniviatores.jpg/330px-05_Pregnant_female_common_seal_in_SSSI_MacLeod_Estate_%28Cuillin%29_by_Romaniviatores.jpg",
+		"Grey seal" : "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Grey_Seal%2C_Dunoon%2C_Scotland_%284932697233%29.jpg/330px-Grey_Seal%2C_Dunoon%2C_Scotland_%284932697233%29.jpg",
+		"Common dolphin" : "https://upload.wikimedia.org/wikipedia/commons/e/ef/Common_dolphin_-_geograph.org.uk_-_4575862.jpg",
+	}
+
+	const ANIMAL_COPYRIGHTS = {
+		"Common (harbour) seal" : "By Romaniviatores, <a href='https://commons.wikimedia.org/wiki/File:05_Pregnant_female_common_seal_in_SSSI_MacLeod_Estate_(Cuillin)_by_Romaniviatores.jpg'>CC BY-SA 4.0</a>",
+		"Grey seal" : "By Phil Sangwell, <a href='https://commons.wikimedia.org/wiki/File:Grey_Seal,_Dunoon,_Scotland_(4932697233).jpg'>CC BY-SA 2.0</a>",
+		"Common dolphin" : "By John Allan, <a href='https://commons.wikimedia.org/wiki/File:Common_dolphin_-_geograph.org.uk_-_4575862.jpg'>CC BY-SA 2.0</a>",
+	}
 
 	const OSM_ATTRIBUTION = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 	const SG_ATTRIBUTION = '&copy; <a href="https://www.data.gov.uk/dataset/68bfec84-4094-4ad8-a1f2-87ac5ce55673/scottish-ferry-routes">Scottish Government</a>';
@@ -112,9 +123,29 @@
 		for (const [speciesName, geojsonData] of Object.entries(sightings_map)) {
 			const layer = L.geoJSON(geojsonData, {
 				pointToLayer: function (feature, latlng) {
-					return L.circleMarker(latlng, MARKER_CONFIG);
+					return L.circleMarker(latlng, {
+						radius: 5,
+						fillColor: MARKER_COLOURS[speciesName] || '#3388ff',
+						color: '#000',
+						weight: 1,
+						opacity: 1,
+						fillOpacity: 0.8,
+						minZoom: 5,
+					});
 				},
 				attribution: ORCA_ATTRIBUTION,
+				onEachFeature: function(feature, layer){
+					content = "<B>"+feature.properties["species"]+"</B><br/>";
+					content += "Date: " + feature.properties["obs_date"] + "<br/>";
+					content += "From the <i>MV " + feature.properties["vessel"] + "</i><br/>";
+					content += " on "+feature.properties["from_port"]+"-"+feature.properties["to_port"]+ " route <br/>";
+					if (feature.properties["species"] in ANIMAL_IMAGES) {
+						content += "<img src='"+ANIMAL_IMAGES[feature.properties["species"]]+"' width=180 /> <br/>"
+						content += "<small>"+ANIMAL_COPYRIGHTS[feature.properties["species"]]+"</small><br/>";
+					}
+					layer.bindTooltip(content);
+					layer.bindPopup(content);
+				}
 			}).addTo(map);
 			overlayMaps[speciesName] = layer;
 		}

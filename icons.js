@@ -17,7 +17,7 @@ const whale_icon = L.divIcon({
 });
 
 dolphin_svg = `<?xml version="1.0" encoding="iso-8859-1"?>
-<svg fill="yellow" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+<svg fill="grey" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	 viewBox="0 0 512 512" xml:space="preserve">
 <g id="XMLID_109_">
 	<g>
@@ -60,7 +60,7 @@ const porpoise_icon = L.divIcon({
     iconAnchor:   [7, 7], // point of the icon which will correspond to marker's location
 });
 
-shark_svg = `<svg fill="grey" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+shark_svg = `<svg fill="yellow" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	 viewBox="0 0 568.932 568.932"
 	 xml:space="preserve">
 <g>
